@@ -5,36 +5,6 @@ import pandas as pd
 tf.reset_default_graph()
 tf.Graph().as_default()
 
-with open("tensorflow_csv_1.csv",'r') as f:
-    with open("updated_tensorflow_csv_1.csv",'w') as f1:
-        next(f) # skip header line
-        for line in f:
-            f1.write(line)
-with open("tensorflow_csv_2.csv",'r') as f:
-    with open("updated_tensorflow_csv_2.csv",'w') as f1:
-        next(f) # skip header line
-        for line in f:
-            f1.write(line)
-
-training_dataframe = pd.read_csv("tensorflow_csv_1.csv", skipinitialspace=True,
-                            skiprows=1, names=COLUMNS)
-test_dataframe = pd.read_csv("updated_tensorflow_csv_2.csv", skipinitialspace=True,
-                            skiprows=1, names=COLUMNS)
-
-COLUMNS = ["s680", "s720", "s760", "s800", "l680", "l720",
-           "l760", "l800", "Normalized_O2_HHb", "Heart_Rate"]
-FEATURES = ["s680", "s720", "s760", "s800", "l680", "l720",
-           "l760", "l800", "Normalized_O2_HHb"]
-feature_cols = [tf.contrib.layers.real_valued_column(k)
-                  for k in FEATURES]
-# Data sets
-OPTICAL_TRAINING = "updated_tensorflow_csv_1.csv"
-OPTICAL_TEST = "updated_tensorflow_csv_2.csv"
-
-# Load datasets.
-training_set = tf.contrib.learn.datasets.base.load_csv_without_header(OPTICAL_TRAINING, np.float, np.float)
-test_set = tf.contrib.learn.datasets.base.load_csv_without_header(OPTICAL_TEST, np.float, np.float)
-
 def lazy_property(function):
     attribute = '_' + function.__name__
 
@@ -58,6 +28,7 @@ class SequenceClassification:
         self.prediction
         self.error
         self.optimize
+        self.minimize
 
     @lazy_property
     def prediction(self):
@@ -89,6 +60,7 @@ class SequenceClassification:
 
     @lazy_property
     def error(self):
+        print (self.target, self.prediction)
         mistakes = tf.not_equal(
             tf.argmax(self.target, 1), tf.argmax(self.prediction, 1))
 #         mistakes = tf.logical_or((tf.less(tf.argmax(target, 1), (tf.argmax(prediction, 1)-1))), \
@@ -100,6 +72,14 @@ class SequenceClassification:
         weight = tf.truncated_normal([in_size, out_size], stddev=0.01)
         bias = tf.constant(0.1, shape=[out_size])
         return tf.Variable(weight), tf.Variable(bias)
+    
+    def minimize(self):
+        optimizer = tf.train.AdamOptimizer()
+        cross_entropy = -tf.reduce_sum(target * tf.log(tf.clip_by_value(prediction,1e-10,1.0)))
+        prediction = tf.nn.softmax(tf.matmul(last, weight) + bias)
+
+
+
 
 
 if __name__ == '__main__':
@@ -108,23 +88,54 @@ if __name__ == '__main__':
     tf.Graph().as_default()
     train = training_set
     test = test_set
-    print (train.data.shape)
-    print (test.data.shape)
+
+    print ("train shape")
+    print (len(train), len(train[0]))
+    print ("test shape")
+    print (len(test), len(test[0]))
+#     train = tf.placeholder(tf.float32, [None, rows, row_size])
+    print ("train.data shape, test.data shape")
+    print (train.data.shape, test.data.shape)
+
+    print ("train.target shape, test.target shape")
+    print (train.target.shape, test.target.shape)
 #     test.data = tf.reshape([None, rows, row_size])
-    rows, row_size = train.data.shape
     
+    _, rows = train.data.shape
+    row_size = 1
 #     rows, row_size = test.data.shape
-    print (train.target[0])
-    print (rows)
-    print (row_size)
+    print ("train.target[0] value / shape[0], shape")
+    print (train.target[0], train.target.shape[0], train.target.shape)
+    print ("_, rows, row_size")
+    print (_, rows, row_size)
 #     num_classes = train.target.shape[0]
-#     print (num_classes)
+    num_classes = 1
+    print ("num_classes")
+    print (num_classes)
     data = tf.placeholder(tf.float32, [None, rows, row_size])
     print("data")
     print(data)
-    target = tf.placeholder(tf.float32, [None, 1])
+    target = tf.placeholder(tf.float32, [None, num_classes])
     print ("target")
     print(target)
+    print ("new train")
+    
+#     new_train = train.data.reshape(len(train.target), 1)
+#     print (new_train.shape)
+#     print ("train.target")
+#     print (train.target.shape)
+    
+    print ("test_target_new") 
+    test_target_new = test.target.reshape(len(test.target), 1)
+    print (test_target_new.shape)
+#     test_target_new = tf.expand_dims(test.target, 1)
+
+    print ("test_data_new shape")
+    test_data_new = test.data.reshape(test.data.shape[0], 1, test.data.shape[1])
+    print (test_data_new.shape)
+#     test_data_new = tf.expand_dims(test.data, 2)
+#     print (test_data_new.get_shape())
+    
     dropout = tf.placeholder(tf.float32)
     model = SequenceClassification(data, target, dropout)
     sess = tf.Session()
@@ -136,13 +147,19 @@ if __name__ == '__main__':
     for i in range(epoch):
         ptr = 0
         for j in range(no_of_batches):
-#             inp, out = train[ptr:ptr+batch_size], train[ptr:ptr+batch_size]
-#             ptr+=batch_size
+            inp, out = train[ptr:ptr+batch_size], train[ptr:ptr+batch_size]
+            ptr+=batch_size
             batch = train.sample(batch_size)
+#             sess.run(minimize,{data: inp, target: out})
+
             sess.run(model.optimize, {data: batch.data, target: batch.target, dropout: 0.5})
+#         print "Epoch ",str(i)
+        print (batch.data.shape)
+        print (batch)
+
 #             sess.run(minimize,{data: inp, target: out})
 #         print ("Epoch - ",str(i))
-        error = sess.run(model.error, {data: test.data, target: test.target, dropout: 1})
+        error = sess.run(model.error, {data: test_data_new, target: test_target_new, dropout: 1})
         print('Epoch {:2d} error {:3.1f}%'.format(i + 1, 100 * error))
 #     incorrect = sess.run(error,{data: test_input, target: test_output})
 # sess.close()
