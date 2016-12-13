@@ -18,33 +18,37 @@ import tensorflow as tf
 tf.Graph().as_default()
 tf.reset_default_graph() 
 
+
 # vertical_stack_new = vertical_stack[[1,2,3,4,5,6,7,8,15,-3,-1]].astype(np.int)
 
 data_features = tensorflow_dataframe.iloc[:, :9]
 # print (len(data_features))
-# print (data_features)
+print (data_features.head(n=1))
 # print (vertical_stack_new.head(n=1))
 data_predict = tensorflow_dataframe.iloc[:, 9:10]
-# print (data_predict)
-train_input = data_features.as_matrix()
-train_output = data_predict.as_matrix()
+print (data_predict.head(n=1))
+input_data = data_features.as_matrix()
+output_data = data_predict.as_matrix()
 print ("train_input.shape")
 print (train_input.shape)
 
 NUM_EXAMPLES = int(0.9 * len(train_input))
-test_input_ = train_input[NUM_EXAMPLES:]
+test_input_ = input_data[NUM_EXAMPLES:]
 test_input = np.expand_dims(test_input_, axis=1)
 
-test_output = test_output[NUM_EXAMPLES:] #everything beyond NUM_EXAMPLES
+test_output = output_data[NUM_EXAMPLES:] #everything beyond NUM_EXAMPLES
 
-train_input_ = train_input[:NUM_EXAMPLES]
+train_input_ = input_data[:NUM_EXAMPLES]
 train_input = np.expand_dims(train_input_, axis=1)
 
-train_output = train_output[:NUM_EXAMPLES] #till NUM_EXAMPLES
+train_output = output_data[:NUM_EXAMPLES] #till NUM_EXAMPLES
 print ("train_input, test_input")
 print (train_input.shape, test_input.shape)
+print (train_input[0], test_input[0])
 print ("train_output, test_output")
 print (train_output.shape, test_output.shape)
+print (train_output[0], test_input[0])
+
 
 print ("test and training data loaded")
 
@@ -113,6 +117,7 @@ sess.run(init_op)
 batch_size = 7
 no_of_batches = int(len(train_input)/batch_size)
 epoch = 5
+
 for i in range(epoch):
     ptr = 0
     for j in range(no_of_batches):
