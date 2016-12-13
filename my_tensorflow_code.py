@@ -1,6 +1,30 @@
 import functools
 import numpy as np
 import pandas as pd
+import tensorflow as tf
+
+
+COLUMNS = ["s680", "s720", "s760", "s800", "l680", "l720",
+           "l760", "l800", "Normalized_O2_HHb", "Heart_Rate"]
+FEATURES = ["s680", "s720", "s760", "s800", "l680", "l720",
+           "l760", "l800", "Normalized_O2_HHb"]
+feature_cols = [tf.contrib.layers.real_valued_column(k)
+                  for k in FEATURES]
+
+training_dataframe = pd.read_csv("updated_tensorflow_csv_1.csv", skipinitialspace=True,
+                            skiprows=1, names=COLUMNS)
+test_dataframe = pd.read_csv("updated_tensorflow_csv_2.csv", skipinitialspace=True,
+                            skiprows=1, names=COLUMNS)
+
+
+# Data sets
+OPTICAL_TRAINING = "updated_tensorflow_csv_1.csv"
+OPTICAL_TEST = "updated_tensorflow_csv_2.csv"
+
+
+# Load datasets.
+training_set = tf.contrib.learn.datasets.base.load_csv_without_header(OPTICAL_TRAINING, np.float, np.float)
+test_set = tf.contrib.learn.datasets.base.load_csv_without_header(OPTICAL_TEST, np.float, np.float)
 
 tf.reset_default_graph()
 tf.Graph().as_default()
