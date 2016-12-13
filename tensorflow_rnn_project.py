@@ -62,12 +62,13 @@ data = tf.placeholder(tf.float32, [None, len(train_input[0]), 9]) #Number of exa
 # choices = 220 #number of possible ouput classes - in this case it's the possible values of Heart Rate, including decimal values
 choices = train_output.shape[1]
 target = tf.placeholder(tf.float32, [None, 1])
-
+# print("train_input.target")
+# print (train_input.target.shape, train_input.target)
 # target = tf.reshape(target, [1, None, 1000])
 print("data shape")
 print (data.get_shape())
-print ("target shape")
-print (target.get_shape())
+print ("target shape, values")
+print (target.get_shape(), target)
 
 num_hidden = 10 #number of "neurons"
 cell = tf.nn.rnn_cell.LSTMCell(num_hidden, state_is_tuple=True)
@@ -101,9 +102,9 @@ cross_entropy = -tf.reduce_sum(target * tf.log(tf.clip_by_value(prediction,1e-10
 optimizer = tf.train.AdamOptimizer()
 minimize = optimizer.minimize(cross_entropy)
 
-# mistakes = tf.not_equal(tf.argmax(target, 1), tf.argmax(prediction, 1))
-mistakes = tf.logical_or((tf.less(tf.argmax(target, 1), (tf.argmax(prediction, 1)-1))), \
-            (tf.greater(tf.argmax(target, 1), (tf.argmax(prediction, 1)+1))))
+mistakes = tf.not_equal(tf.argmax(target, 1), tf.argmax(prediction, 1))
+# mistakes = tf.logical_or((tf.less(tf.argmax(target, 1), (tf.argmax(prediction, 1)-1))), \
+#             (tf.greater(tf.argmax(target, 1), (tf.argmax(prediction, 1)+1))))
 error = tf.reduce_mean(tf.cast(mistakes, tf.float32))
 
 # Execute the model
@@ -126,6 +127,7 @@ for i in range(epoch):
         sess.run(minimize,{data: inp, target: out})
     print ("Epoch - ",str(i))
 incorrect = sess.run(error,{data: test_input, target: test_output})
+# print sess.run(prediction,{data:
 print('Epoch {:2d} error {:31f}%'.format(i + 1, 100 * incorrect))
 sess.close()
 
