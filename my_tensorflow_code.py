@@ -103,9 +103,6 @@ class SequenceClassification:
         prediction = tf.nn.softmax(tf.matmul(last, weight) + bias)
 
 
-
-
-
 if __name__ == '__main__':
     # We treat images as sequences of pixel rows.
 #     train, test = sets.Mnist()
@@ -143,6 +140,18 @@ if __name__ == '__main__':
     print(target)
     print ("new train")
     
+    print ("train_target_new") 
+#     test_target_new = test.target.reshape(len(test.target), 1)
+    train_target_new = np.expand_dims(train.target, axis=1)
+    print (train_target_new.shape)
+#     test_target_new = tf.expand_dims(test.target, 1)
+
+    print ("train_data_new shape")
+#     test_data_new = test.data.reshape(test.data.shape[0], test.data.shape[1], 1)
+    train_data_new = np.expand_dims(train.data, axis=2)
+    print (train_data_new.shape)
+#     test_data_new = tf.expand_dims(test.data, 2)
+#     print (test_data_new.get_shape())
     print ("test_target_new") 
 #     test_target_new = test.target.reshape(len(test.target), 1)
     test_target_new = np.expand_dims(test.target, axis=1)
@@ -161,24 +170,28 @@ if __name__ == '__main__':
     sess = tf.Session()
     sess.run(tf.global_variables_initializer())
     batch_size = 10
-    no_of_batches = int(len(train)/batch_size)
+    no_of_batches = int(len(train[0])/batch_size)
+    print ("no_of_batches")
+    print (no_of_batches)
     epoch = 10
     
     for i in range(epoch):
         ptr = 0
         for j in range(no_of_batches):
-            inp, out = train[ptr:ptr+batch_size], train[ptr:ptr+batch_size]
+            inp, out = train_data_new[ptr:ptr+batch_size], train_target_new[ptr:ptr+batch_size]
             ptr+=batch_size
-            batch = train.sample(batch_size)
+#             batch = train.sample(batch_size)
 #             sess.run(minimize,{data: inp, target: out})
 
-            sess.run(model.optimize, {data: batch.data, target: batch.target, dropout: 0.5})
+#             sess.run(model.optimize, {data: batch.data, target: batch.target, dropout: 0.5})
+            sess.run(model.optimize, {data: inp, target: out, dropout: 0.5})
+
 #         print "Epoch ",str(i)
 #         print (batch)
 
 #             sess.run(minimize,{data: inp, target: out})
 #         print ("Epoch - ",str(i))
         error = sess.run(model.error, {data: test_data_new, target: test_target_new, dropout: 1})
-        print('Epoch {:2d} error {:3.1f}%'.format(i + 1, 100 * error))
+        print('Epoch {:2d} error {:31f}%'.format(i + 1, 100 * error))
 #     incorrect = sess.run(error,{data: test_input, target: test_output})
 # sess.close()
