@@ -99,7 +99,6 @@ if __name__ == '__main__':
 
     print ("train.target shape, test.target shape")
     print (train.target.shape, test.target.shape)
-#     test.data = tf.reshape([None, rows, row_size])
     
     _, rows = train.data.shape
     row_size = 1
@@ -120,18 +119,15 @@ if __name__ == '__main__':
     print(target)
     print ("new train")
     
-#     new_train = train.data.reshape(len(train.target), 1)
-#     print (new_train.shape)
-#     print ("train.target")
-#     print (train.target.shape)
-    
     print ("test_target_new") 
-    test_target_new = test.target.reshape(len(test.target), 1)
+#     test_target_new = test.target.reshape(len(test.target), 1)
+    test_target_new = np.expand_dims(test.target, axis=1)
     print (test_target_new.shape)
 #     test_target_new = tf.expand_dims(test.target, 1)
 
     print ("test_data_new shape")
-    test_data_new = test.data.reshape(test.data.shape[0], 1, test.data.shape[1])
+#     test_data_new = test.data.reshape(test.data.shape[0], test.data.shape[1], 1)
+    test_data_new = np.expand_dims(test.data, axis=2)
     print (test_data_new.shape)
 #     test_data_new = tf.expand_dims(test.data, 2)
 #     print (test_data_new.get_shape())
@@ -154,8 +150,7 @@ if __name__ == '__main__':
 
             sess.run(model.optimize, {data: batch.data, target: batch.target, dropout: 0.5})
 #         print "Epoch ",str(i)
-        print (batch.data.shape)
-        print (batch)
+#         print (batch)
 
 #             sess.run(minimize,{data: inp, target: out})
 #         print ("Epoch - ",str(i))
