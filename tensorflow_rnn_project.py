@@ -35,7 +35,7 @@ NUM_EXAMPLES = int(0.9 * len(train_input))
 test_input_ = train_input[NUM_EXAMPLES:]
 test_input = np.expand_dims(test_input_, axis=1)
 
-test_output = train_output[NUM_EXAMPLES:] #everything beyond NUM_EXAMPLES
+test_output = test_output[NUM_EXAMPLES:] #everything beyond NUM_EXAMPLES
 
 train_input_ = train_input[:NUM_EXAMPLES]
 train_input = np.expand_dims(train_input_, axis=1)
